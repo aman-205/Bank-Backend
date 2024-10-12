@@ -3,6 +3,7 @@ package com.aman.BankBackend.Service;
 
 import com.aman.BankBackend.DTO.AccountInfo;
 import com.aman.BankBackend.DTO.BankResponse;
+import com.aman.BankBackend.DTO.EmailDetails;
 import com.aman.BankBackend.DTO.UserRequest;
 import com.aman.BankBackend.Repo.UserRepo;
 import com.aman.BankBackend.entity.User;
@@ -17,6 +18,9 @@ public class UserServiceImp implements  UserService{
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
@@ -41,6 +45,14 @@ public class UserServiceImp implements  UserService{
                 .build();
 
         User savedUser=userRepo.save(newUser);
+
+        EmailDetails emailDetails=EmailDetails.builder()
+                .recipient(savedUser.getEmail())
+                .subject("Account Creation")
+                .messageBody("Congratulations Your Account has been successfully created.\n Your Account details:\n" +
+                        "Account name: "+savedUser.getFirstName()+" "+savedUser.getLastName()+"\nAccount number: "+savedUser.getAccountNumber())
+                .build();
+        emailService.emailMessageAlert(emailDetails);
 
         return BankResponse.builder()
                 .responseCode(Account.Account_creation_code)
