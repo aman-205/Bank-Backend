@@ -25,6 +25,14 @@ public class Account {
     public  static final String Account_debit_code="007";
     public  static final String Account_debit_message="Account Debited";
 
+    public  static final String Account_noReceiver_code="008";
+    public  static final String Account_noReceiver_message="Receiver not exist";
+
+    public  static final String Account_transferred_code="009";
+    public  static final String Account_transferred_message ="Amount transferred successfully";
+
+
+
     public static String generate(){
 
 

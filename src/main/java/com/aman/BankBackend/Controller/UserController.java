@@ -1,9 +1,6 @@
 package com.aman.BankBackend.Controller;
 
-import com.aman.BankBackend.DTO.BankResponse;
-import com.aman.BankBackend.DTO.CreditDebitRequest;
-import com.aman.BankBackend.DTO.EnquiryRequest;
-import com.aman.BankBackend.DTO.UserRequest;
+import com.aman.BankBackend.DTO.*;
 import com.aman.BankBackend.Service.UserService;
 import com.aman.BankBackend.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +50,11 @@ public class UserController {
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return userService.getAll();
+    }
+
+    @PostMapping("/transfer")
+    public BankResponse transfer(@RequestBody Transfer transfer){
+        return userService.transferAmount(transfer);
     }
 
 }

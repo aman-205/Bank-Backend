@@ -162,4 +162,53 @@ public class UserServiceImp implements  UserService{
 
                 .build();
     }
+
+    @Override
+    public BankResponse transferAmount(Transfer transfer) {
+        boolean accountExists= userRepo.existsByAccountNumber(transfer.getSenderAccountNumber());
+        boolean receiverAccountExists=userRepo.existsByAccountNumber(transfer.getReceiverAccountNumber());
+        if(!accountExists){
+            return BankResponse.builder()
+                    .responseCode(Account.Account_notExist_code)
+                    .responseMessage(Account.Account_notExist_message)
+                    .accountInfo(null)
+                    .build();
+        }
+        else if(!receiverAccountExists){
+            return BankResponse.builder()
+                    .responseCode(Account.Account_noReceiver_code)
+                    .responseMessage(Account.Account_noReceiver_message)
+                    .accountInfo(null)
+                    .build();
+        }
+        User sender= userRepo.findByAccountNumber(transfer.getSenderAccountNumber());
+        if(sender.getAccountBalance().compareTo(transfer.getAmount())<0){
+            return BankResponse.builder()
+                    .responseCode(Account.Account_insufficient_code)
+                    .responseMessage(Account.Account_insufficient_message)
+                    .accountInfo(AccountInfo.builder()
+                            .accountName(sender.getFirstName()+" "+sender.getLastName())
+                            .accountBalance(sender.getAccountBalance())
+                            .accountNumber(sender.getAccountNumber())
+                            .build())
+                    .build();
+
+        }
+        User receiver= userRepo.findByAccountNumber(transfer.getReceiverAccountNumber());
+        receiver.setAccountBalance(receiver.getAccountBalance().add(transfer.getAmount()));
+        sender.setAccountBalance(sender.getAccountBalance().subtract(transfer.getAmount()));
+        userRepo.save(receiver);
+        userRepo.save(sender);
+        return BankResponse.builder()
+                .responseMessage(Account.Account_transferred_message)
+                .responseCode(Account.Account_transferred_code)
+                .accountInfo(AccountInfo.builder()
+                        .accountNumber(sender.getAccountNumber())
+                        .accountBalance(sender.getAccountBalance())
+                        .accountName(sender.getFirstName()+" "+sender.getLastName())
+                        .build())
+                .build();
+
+
+    }
 }
