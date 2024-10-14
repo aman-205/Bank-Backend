@@ -20,6 +20,9 @@ public class UserServiceImp implements  UserService{
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private TransactionService transactionService;
+
     @Override
     public List<User> getAll() {
         return userRepo.findAll();
@@ -116,6 +119,13 @@ public class UserServiceImp implements  UserService{
         foundUser.setAccountBalance(foundUser.getAccountBalance().add(creditDebitRequest.getAmount()));
         userRepo.save(foundUser);
 
+        TransactionDto transactionDto= TransactionDto.builder()
+                .accountNumber(foundUser.getAccountNumber())
+                .transactionType("Credit")
+                .amount(creditDebitRequest.getAmount())
+                .build();
+        transactionService.saveTransaction(transactionDto);
+
         TransferDetails transferDetails=TransferDetails.builder()
                 .recipient(foundUser.getEmail())
                 .messageBody(creditDebitRequest.getAmount()+"is credited to your account by cash")
@@ -158,6 +168,15 @@ public class UserServiceImp implements  UserService{
         }
         foundUser.setAccountBalance(foundUser.getAccountBalance().subtract(creditDebitRequest.getAmount()));
         userRepo.save(foundUser);
+
+        TransactionDto transactionDto= TransactionDto.builder()
+                .accountNumber(foundUser.getAccountNumber())
+                .transactionType("Debit")
+                .amount(creditDebitRequest.getAmount())
+                .build();
+
+        transactionService.saveTransaction(transactionDto);
+
         TransferDetails transferDetails=TransferDetails.builder()
                 .recipient(foundUser.getEmail())
                 .messageBody(creditDebitRequest.getAmount()+"is debited from your account by cash")
@@ -225,6 +244,20 @@ public class UserServiceImp implements  UserService{
                 .subject("Amount credited")
                 .build();
         emailService.transferDetails(transferDetails1);
+
+        TransactionDto transactionDto= TransactionDto.builder()
+                .accountNumber(receiver.getAccountNumber())
+                .transactionType("Credit")
+                .amount(transfer.getAmount())
+                .build();
+        transactionService.saveTransaction(transactionDto);
+
+        TransactionDto transactionDto1= TransactionDto.builder()
+                .accountNumber(sender.getAccountNumber())
+                .transactionType("debit")
+                .amount(transfer.getAmount())
+                .build();
+        transactionService.saveTransaction(transactionDto1);
         return BankResponse.builder()
                 .responseMessage(Account.Account_transferred_message)
                 .responseCode(Account.Account_transferred_code)
