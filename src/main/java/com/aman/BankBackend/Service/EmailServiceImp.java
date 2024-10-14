@@ -1,6 +1,7 @@
 package com.aman.BankBackend.Service;
 
 import com.aman.BankBackend.DTO.EmailDetails;
+import com.aman.BankBackend.DTO.TransferDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -32,5 +33,21 @@ public class EmailServiceImp implements  EmailService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void transferDetails(TransferDetails transferDetails) {
+        try{
+            SimpleMailMessage mailMessage= new SimpleMailMessage();
+            mailMessage.setFrom(senderEmail);
+            mailMessage.setTo(transferDetails.getRecipient());
+            mailMessage.setText(transferDetails.getMessageBody());
+            mailMessage.setSubject(transferDetails.getSubject());
+            javaMailSender.send(mailMessage);
+            System.out.println("mail send");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

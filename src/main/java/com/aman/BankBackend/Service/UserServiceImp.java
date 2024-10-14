@@ -115,6 +115,13 @@ public class UserServiceImp implements  UserService{
         User foundUser= userRepo.findByAccountNumber(creditDebitRequest.getAccountNumber());
         foundUser.setAccountBalance(foundUser.getAccountBalance().add(creditDebitRequest.getAmount()));
         userRepo.save(foundUser);
+
+        TransferDetails transferDetails=TransferDetails.builder()
+                .recipient(foundUser.getEmail())
+                .messageBody(creditDebitRequest.getAmount()+"is credited to your account by cash")
+                .subject("Amount Credit")
+                .build();
+        emailService.transferDetails(transferDetails);
         return BankResponse.builder()
                 .responseCode(Account.Account_credit_code)
                 .responseMessage(Account.Account_credit_message)
@@ -151,6 +158,12 @@ public class UserServiceImp implements  UserService{
         }
         foundUser.setAccountBalance(foundUser.getAccountBalance().subtract(creditDebitRequest.getAmount()));
         userRepo.save(foundUser);
+        TransferDetails transferDetails=TransferDetails.builder()
+                .recipient(foundUser.getEmail())
+                .messageBody(creditDebitRequest.getAmount()+"is debited from your account by cash")
+                .subject("Amount debit")
+                .build();
+        emailService.transferDetails(transferDetails);
         return BankResponse.builder()
                 .responseCode(Account.Account_debit_code)
                 .responseMessage(Account.Account_debit_message)
@@ -199,6 +212,19 @@ public class UserServiceImp implements  UserService{
         sender.setAccountBalance(sender.getAccountBalance().subtract(transfer.getAmount()));
         userRepo.save(receiver);
         userRepo.save(sender);
+        TransferDetails transferDetails=TransferDetails.builder()
+                .recipient(sender.getEmail())
+                .messageBody(transfer.getAmount()+" is transferred from your account to "+receiver.getFirstName()+" "+receiver.getLastName()+" with account number "+"******"+transfer.getReceiverAccountNumber().substring(6,10))
+                .subject("Amount transferred")
+                .build();
+        emailService.transferDetails(transferDetails);
+
+        TransferDetails transferDetails1=TransferDetails.builder()
+                .recipient(receiver.getEmail())
+                .messageBody(transfer.getAmount()+" is credited to your account from "+sender.getFirstName()+" "+sender.getLastName()+" with account number "+"******"+transfer.getSenderAccountNumber().substring(6,10))
+                .subject("Amount credited")
+                .build();
+        emailService.transferDetails(transferDetails1);
         return BankResponse.builder()
                 .responseMessage(Account.Account_transferred_message)
                 .responseCode(Account.Account_transferred_code)
