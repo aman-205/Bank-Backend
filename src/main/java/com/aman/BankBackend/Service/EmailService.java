@@ -7,4 +7,5 @@ import com.aman.BankBackend.DTO.TransferDetails;
 public interface EmailService  {
     void emailMessageAlert(EmailDetails emailDetails);
     void transferDetails(TransferDetails transferDetails);
+    void sendMail(EmailDetails emailDetails);
 }
