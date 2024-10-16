@@ -33,6 +33,11 @@ public class UserController {
     public BankResponse createAccount(@RequestBody UserRequest userRequest) {
         return userService.createAccount(userRequest);
     }
+
+    @PostMapping("/login")
+    public  BankResponse login(@RequestBody LoginDto loginDto){
+        return  userService.login(loginDto);
+    }
     @Operation(
             summary = "check balance",
             description = "check balance of user if exist"

@@ -1,17 +1,25 @@
 package com.aman.BankBackend.Service;
 
 
+import com.aman.BankBackend.Config.JwtTokenProvider;
 import com.aman.BankBackend.DTO.*;
 import com.aman.BankBackend.Repo.UserRepo;
+import com.aman.BankBackend.entity.Role;
 import com.aman.BankBackend.entity.User;
 import com.aman.BankBackend.utils.Account;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class UserServiceImp implements  UserService{
 
     @Autowired
@@ -22,6 +30,13 @@ public class UserServiceImp implements  UserService{
 
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     @Override
     public List<User> getAll() {
@@ -46,8 +61,10 @@ public class UserServiceImp implements  UserService{
                 .accountNumber(Account.generate())
                 .accountBalance(BigDecimal.ZERO)
                 .email(userRequest.getEmail())
+                .password(passwordEncoder.encode(userRequest.getPassword()))
                 .phoneNumber(userRequest.getPhoneNumber())
                 .status("Active")
+                .role(Role.valueOf("ROLE_ADMIN"))
                 .build();
 
         User savedUser=userRepo.save(newUser);
@@ -69,6 +86,27 @@ public class UserServiceImp implements  UserService{
                         .accountName(savedUser.getFirstName()+" "+savedUser.getLastName())
                         .build())
                 .build();
+    }
+
+
+    public  BankResponse login(LoginDto loginDto){
+        Authentication authentication=null;
+        authentication=authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword())
+        );
+
+        EmailDetails loginAlert= EmailDetails.builder()
+                .subject("Yor are logged in")
+                .recipient(loginDto.getEmail())
+                .messageBody("You logged into your account. If you didn't initiate this request, please inform")
+                .build();
+        emailService.emailMessageAlert(loginAlert);
+        return  BankResponse.builder()
+                .responseCode("Login Success")
+                .responseMessage(jwtTokenProvider.generate(authentication))
+                .build();
+
+
     }
 
     @Override
@@ -270,4 +308,5 @@ public class UserServiceImp implements  UserService{
 
 
     }
+
 }

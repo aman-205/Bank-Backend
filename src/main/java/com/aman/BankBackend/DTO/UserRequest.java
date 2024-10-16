@@ -18,7 +18,7 @@ public class UserRequest {
     private String address;
     private String state;
 
-
+    private  String password;
     private String email;
     private String phoneNumber;
 }
